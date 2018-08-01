@@ -14,13 +14,11 @@ library(effects)
 
 data <- read.csv("G:/My Drive/Graduate School/Research/Remnant/Root exclosure/data/Initial survival and height.csv")
 data$Sdling <- ifelse(data$SppCode == "NONE", 0, data$Sdling)
-library(plyr)
-data <- plyr::rename(data, replace = c("S_ID" = "Site", "SppCode" = "Spp", "Burned." = "brn"))
+data <- data %>% 
+  rename(c("S_ID" = "Site", "SppCode" = "Spp", "Burned." = "brn"))
 data$ID <- paste(data$Site, data$LUH, data$CT, data$SP, data$ET, data$EP)
 datat <- data
 
-
-library(reshape2)
 data.cast <- dcast(data, Site + LUH + CT + SP + EP + ET + ID + brn ~ Spp, value.var = "Sdling", fun.aggregate = mean)
 data.cast[is.na(data.cast)] <- 0
 data.cast$rich.a <- 0
