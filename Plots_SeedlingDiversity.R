@@ -198,36 +198,39 @@ load("G:/My Drive/Graduate School/Research/Remnant/Root exclosure/Seedling diver
 #wch
 pw1 <- ggplot(data.cast.whc, 
               aes(x= whc, y = logrich.a,linetype = factor(ET), shape = ET)) + 
-  geom_point() + labs(colour = "Legend", y = NULL,x = "Soil water holding capacity (%)") +
+  geom_point(alpha = .15) + labs(colour = "Legend", y = NULL,x = "Soil water holding capacity (%)") +
   geom_smooth( method = "lm", se = FALSE, colour = "black") + 
   scale_linetype_manual(values = c("solid", "dashed"), name = "Legend") +
-  scale_shape_manual(values=c(19, 4), name = "Legend") +
+  scale_shape_manual(values=c(19, 1), name = "Legend") +
   theme(panel.background = element_rect(fill = NA, color = "black"), panel.grid = element_blank(),
         legend.background = element_blank(), 
         legend.key = element_blank(), legend.title.align = .5,
         text = element_text(size = 12), axis.text.x = element_text(size = 10, color = "black"),
-        axis.text.y = element_text(size = 10, color = "black"), legend.position="none")
+        axis.text.y = element_text(size = 10, color = "black") legend.position="none")
 
 #light
 pl2 <- ggplot(ear.light, 
-              aes(x= X5cm, y = logrich.a, colour =  CT)) + 
-  geom_point() + labs(colour = "Legend", y = NULL,x = expression(paste("Light intensity (", mu, "mol/s)"))) +
+              aes(x= X5cm, y = logrich.a, colour =  factor(CT, labels = c("T" = "Thinned",
+                                                                          "U" = "Unthinned")))) + 
+  geom_point(alpha = .15) + labs(colour = "Legend", y = NULL,x = expression(paste("Light intensity (", mu, "mol/s)"))) +
   geom_smooth( method = "lm", se = FALSE) + 
-  scale_colour_manual(values=c("khaki3","khaki4")) +
+  scale_y_continuous(limits = c(0, 2.5)) +
+  scale_colour_manual(values=c("khaki3","khaki4"), guide = guide_legend) +
+  guides(colour = guide_legend(direction = "horizontal", title = NULL)) +
   theme(panel.background = element_rect(fill = NA, color = "black"), panel.grid = element_blank(),
-        legend.background = element_blank(), 
+        legend.background = element_rect(colour = 'Grey20', fill = 'white', linetype='solid'), 
         legend.key = element_blank(), legend.title.align = .5,
         text = element_text(size = 12), axis.text.x = element_text(size = 10, color = "black"),
-        axis.text.y = element_text(size = 10, color = "black"), legend.position="none")
+        axis.text.y = element_text(size = 10, color = "black"), legend.position=c(.5,.95), legend.box = "horizontal")
 
 #dbh
 pd3 <- ggplot(data.cast.dbh[data.cast.dbh$CT == "U",], 
               aes(x= basal, y = logrich.a, colour =  factor(LUH),linetype = factor(ET), shape = ET)) + 
-  geom_point() + labs(colour = "Legend", y = NULL,x = expression(paste("Basal area (cm"^"2", ")"))) +
-  geom_smooth( method = "lm", se = FALSE) + 
-  scale_colour_manual(values=c("gold3","darkolivegreen3")) +
+  geom_point(alpha = .15) + labs(colour = "Legend", y = NULL,x = expression(paste("Basal area (cm"^"2", ")"))) +
+  geom_smooth( method = "lm", se = F) + 
+  scale_colour_manual(values=c("gold3","olivedrab")) +
   scale_linetype_manual(values = c("solid", "dashed"), name = "Legend") +
-  scale_shape_manual(values=c(19, 4), name = "Legend") +
+  scale_shape_manual(values=c(19, 1), name = "Legend") +
   theme(panel.background = element_rect(fill = NA, color = "black"), panel.grid = element_blank(),
         legend.background = element_blank(), 
         legend.key = element_blank(), legend.title.align = .5,
@@ -237,7 +240,7 @@ pd3 <- ggplot(data.cast.dbh[data.cast.dbh$CT == "U",],
 #gre
 pg4 <- ggplot(ear.gre, 
               aes(x= green, y = logrich.a)) + 
-  geom_point() + labs(colour = "Legend", y = NULL,x = "Vegetation cover (%)") +
+  geom_point(alpha = .15) + labs(colour = "Legend", y = NULL,x = "Vegetation cover (%)") +
   geom_smooth(method = "lm", se = FALSE, colour="black") +
   theme(panel.background = element_rect(fill = NA, color = "black"), panel.grid = element_blank(),
         legend.background = element_blank(), 
@@ -267,7 +270,7 @@ predict_sm.melt <- sm.melt %>%
 predict_sm.melt$pa <- predict(m1sm, newdata = predict_sm.melt, re.form = NA, type="response")
 #predict_sm.melt_no_et <- aggregate(pa ~ LUH + CT + lnsm, data = predict_sm.melt, FUN = mean)
 
-psm <- ggplot(sm.melt, aes(x = lnsm, y = pa, color = interaction(LUH,CT))) +
+psm <- ggplot(sm.melt, aes(x = lnsm, y = pa, color = factor(interaction(LUH,CT), labels = c("Thinned"," Unthinned", "Post-ag.", "Remnant")))) +
   labs(#title = expression(italic("Coreopsis major")), 
     #colour = "Legend", 
     y = NULL,#"Log total biomass (mg)", 
@@ -279,9 +282,10 @@ psm <- ggplot(sm.melt, aes(x = lnsm, y = pa, color = interaction(LUH,CT))) +
   theme(panel.background = element_rect(fill = NA, color = "black"), panel.grid = element_blank(),
         legend.background = element_blank(), 
         legend.key = element_blank(), legend.title.align = .5,
-        text = element_text(size = 24), axis.text.x = element_text(size = 24, color = "black"),
-        axis.text.y = rotatedAxisElementText(angle = 90, position = "y", Size = 24,  Color = "black"), 
-        legend.position="none")
+        text = element_text(size = 30), axis.text.x = element_text(size = 30, color = "black"),
+        axis.title = element_text(size = 36),
+        axis.text.y = rotatedAxisElementText(angle = 90, position = "y", Size = 30,  Color = "black"), 
+        legend.position=c(.5,.95), legend.box = "horizontal")
 
 
 
@@ -305,8 +309,9 @@ psla <- ggplot(ht.melt, aes(x = lnsla, y = pa, color = CT, linetype = ET)) +
   theme(panel.background = element_rect(fill = NA, color = "black"), panel.grid = element_blank(),
         legend.background = element_blank(), 
         legend.key = element_blank(), legend.title.align = .5,
-        text = element_text(size = 24), axis.text.x = element_text(size = 24, color = "black"),
-        axis.text.y = rotatedAxisElementText(angle = 90, position = "y", Size = 24,  Color = "black"), 
+        text = element_text(size = 30), axis.text.x = element_text(size = 30, color = "black"),
+        axis.title = element_text(size = 36),
+        axis.text.y = rotatedAxisElementText(angle = 90, position = "y", Size = 30,  Color = "black"), 
         legend.position="none")
 
 
@@ -331,12 +336,13 @@ pht <- ggplot(ht.melt, aes(x = lnht, y = pa, color = CT, linetype = ET)) +
   theme(panel.background = element_rect(fill = NA, color = "black"), panel.grid = element_blank(),
         legend.background = element_blank(), 
         legend.key = element_blank(), legend.title.align = .5,
-        text = element_text(size = 24), axis.text.x = element_text(size = 24, color = "black"),
-        axis.text.y = rotatedAxisElementText(angle = 90, position = "y", Size = 24,  Color = "black"), 
+        text = element_text(size = 30), axis.text.x = element_text(size = 30, color = "black"),
+        axis.title = element_text(size = 36),
+        axis.text.y = rotatedAxisElementText(angle = 90, position = "y", Size = 30,  Color = "black"), 
         legend.position="none")
 
 
-grid.arrange(psm, psla, pht, ncol = 1, left = textGrob("Probability of occurrence", gp=gpar(fontsize=34), rot = 90)) 
+grid.arrange(psm, psla, pht, ncol = 1, left = textGrob("Probability of occurrence", gp=gpar(fontsize=36), rot = 90)) #2.75in x 6.95 -> 8.25, 20.85
 
 
 ##############################################################################################################
@@ -398,10 +404,10 @@ grid.arrange(pa1, ps2, pv3, ncol = 1, bottom = textGrob("Land-use history and Ca
 pda <- data.cast[data.cast$brn == "NO",]
 
 ggplot(pda, aes(x = logrich.s, y = logrich.v)) +
-  geom_point(position = "jitter") +
-  #geom_count(mapping = NULL, data = NULL, stat = "sum",
-  # position = "identity", na.rm = FALSE, show.legend = NA,
-  #inherit.aes = TRUE) +
+  #geom_point()#position = "jitter") +
+  geom_count(mapping = NULL, data = NULL, stat = "sum",
+   position = "identity", na.rm = FALSE, show.legend = NA,
+  inherit.aes = TRUE) +
   geom_smooth( method = "lm", se = FALSE, color = "black") + 
   theme(panel.background = element_rect(fill = NA, color = "black"), panel.grid = element_blank(),
         legend.background = element_blank(), 

@@ -15,7 +15,7 @@ library(effects)
 data <- read.csv("G:/My Drive/Graduate School/Research/Remnant/Root exclosure/data/Initial survival and height.csv")
 data$Sdling <- ifelse(data$SppCode == "NONE", 0, data$Sdling)
 data <- data %>% 
-  rename(c("S_ID" = "Site", "SppCode" = "Spp", "Burned." = "brn"))
+  rename("Site" = "S_ID", "Spp" = "SppCode", "brn" = "Burned.")
 data$ID <- paste(data$Site, data$LUH, data$CT, data$SP, data$ET, data$EP)
 
 
@@ -45,7 +45,7 @@ data.cast$logrich.a <- log(data.cast$rich.a + 1)
 data.cast$logrich.s <- log(data.cast$rich.s + 1)
 data.cast$logrich.v <- log(data.cast$rich.v + 1)
 
-write.csv(data.cast, "G:/My Drive/Graduate School/Research/Remnant/Root exclosure/Seedling diversity/data/R_dataframes/data.cast.csv")
+save(data.cast, file = "G:/My Drive/Graduate School/Research/Remnant/Root exclosure/Seedling diversity/data/R_dataframes/data.cast.RData")
 
 #### Environmental variables ####
 
