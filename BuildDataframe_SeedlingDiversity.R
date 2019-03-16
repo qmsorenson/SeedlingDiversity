@@ -23,6 +23,7 @@ data$ID <- paste(data$Site, data$LUH, data$CT, data$SP, data$ET, data$EP)
 
 data.cast <- dcast(data, Site + LUH + CT + SP + EP + ET + ID + brn ~ Spp, value.var = "Sdling", fun.aggregate = mean)
 data.cast[is.na(data.cast)] <- 0
+data.cast.check <- data.cast
 data.cast$rich.a <- 0
 for  (i in 1:length(data.cast$rich.a))
 {
@@ -214,6 +215,17 @@ fulll <- colnames(data.cast[,c(which(colnames(data.cast) == "ACAGRA"):which(coln
 #redul <- unique(sla.melt$Spp)
 redul <- unique(ht.melt$Spp)
 fulll[!(fulll %in% redul)]
+
+### make histogram of number of seedlings in root exclosures
+
+data.cast.check$tot.seed <- 0
+for  (i in 1:nrow(data.cast.check))
+{
+  data.cast.check[i, which(colnames(data.cast.check) == "tot.seed")] <- sum(data.cast[i,c(which(colnames(data.cast) == "ACAGRA"):which(colnames(data.cast) == "VITROT"))])
+}
+
+nrow(data.cast.check[data.cast.check$tot.seed <= 20, ])
+hist(data.cast.check$tot.seed, breaks = 188)
 
 ### write files for chtc ###
 
