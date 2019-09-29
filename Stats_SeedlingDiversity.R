@@ -1,6 +1,7 @@
 library(reshape2)
 library(lme4)
 library(lmerTest)
+library(car)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
@@ -8,6 +9,9 @@ library(Hmisc)
 library(MuMIn)
 library(lsmeans)
 library(effects)
+library(phia)
+library(gganimate)
+library(piecewiseSEM)
 
 
 #############################################################################################
@@ -17,19 +21,24 @@ library(effects)
 data.cast <- read.csv("G:/My Drive/Graduate School/Research/Remnant/Root exclosure/Seedling diversity/data/R_dataframes/data.cast.csv")
 
 
-rich.a <- lmer(logrich.a ~ ET*LUH*CT + (1|Site/LUH:CT/SP), data = data.cast[data.cast$brn == "NO",])
+rich.a <- lmer(logrich.a ~ ET*LUH*CT + (1|Site/LUH:CT) + (1|Site:LUH:CT:SP), data = data.cast[data.cast$brn == "NO",])
+anova(rich.a)
+summary(rich.a)
 sra <- step(rich.a)
-lsmra<- lsmeansLT(rich.a)
+lsmra <- lsmeansLT(rich.a)
+tab_model(rich.a)
 #plot(rich.a)
 #hist(resid(rich.a))
 
 rich.s <- lmer(logrich.s ~ ET*LUH*CT + (1|Site/LUH:CT/SP), data = data.cast[data.cast$brn == "NO",])
+anova(rich.s)
 srs <- step(rich.s)
 lsmrs<- lsmeansLT(rich.s)
 #plot(rich.s)
 #hist(resid(rich.s))
 
 rich.v <- lmer(logrich.v ~ ET*LUH*CT + (1|Site/LUH:CT/SP), data = data.cast[data.cast$brn == "NO",])
+anova(rich.v)
 srv <- step(rich.v)
 lsmrv<- lsmeansLT(rich.v)
 #plot(rich.v)
@@ -38,9 +47,9 @@ lsmrv<- lsmeansLT(rich.v)
 save(lsmra, lsmrs, lsmrv, file = "G:/My Drive/Graduate School/Research/Remnant/Root exclosure/Seedling diversity/data/R_dataframes/lsmr.RData")
 
 
-#############################################################################################
+########################################################################################%%%%%
 ###############################  Environmental variables  ###################################
-#############################################################################################
+########################################################################################%%%%%
 
 
 load("G:/My Drive/Graduate School/Research/Remnant/Root exclosure/Seedling diversity/data/R_dataframes/Enviro.data.RData")
@@ -155,17 +164,21 @@ load("G:/My Drive/Graduate School/Research/Remnant/Root exclosure/Seedling diver
 
 #binoomial models
 
-m1 <- glmer(pa ~ LUH*CT*lnsm + ET + (1|Site/LUH:CT/SP2) + (1+ LUH*CT|Spp) + (1|obs), nAGQ = 0, family = "binomial", data=sm.melt)
+m1 <- glmer(pa ~ LUH*CT*scale(log(SeedMass_mg)) +ET +  (1|Site/LUH:CT) + (1|Site:LUH:CT:SP2) + (1 + LUH*CT|Spp) , nAGQ = 0, family = "binomial", data=sm.melt)# %>% select(-lnsm) %>% filter(Spp %in% as.list(sm.spplist %>% filter(Spp_n >= 8) %>% select(Spp))$Spp))
 testInteractions(m1, custom = c(list(LUH = c(1,-1)), list(CT = c(0,1))), slope = "lnsm", adjustment="none") # R:T-U 0.0001138, M:T-U 0.09371, T:R-M  0.4, U:R-M 0.06195
 testInteractions(m1, custom = c(list(LUH = c(1,-1)), list(CT = c(0,1))), adjustment="none") # R:T-U 4.454e-08, M:T-U 0.003106, T:R-M 0.6534, U:R-M 0.1393
+
 summary(m1)
+tab_model(m1)
+sem.model.fits(m1)
 hist(resid(m1))
 qqnorm(residuals(m1))
 plot(allEffects(m1try))
 
 
-m2 <- glmer(pa ~ LUH + CT:LUH + CT*ET*lnsla + (1|Site/LUH:CT/SP2) + (1+ ET*CT|Spp) + (1|obs), family = "binomial", control=glmerControl(calc.derivs=F), nAGQ = 0, data=sla.melt)
-
+m2 <- glmer(pa ~ LUH + CT:LUH + CT*ET*scale(sla) + (1|Site/LUH:CT/SP2) + (1+ ET*CT|Spp) + (1|obs), family = "binomial", control=glmerControl(calc.derivs=F), nAGQ = 0, data=sla.melt)# %>% select(-lnsla) %>% filter(Spp %in% as.list(sla.spplist %>% filter(Spp_n >= 5) %>% select(Spp))$Spp))
+Anova(m2)
+rsquared(m2)
 summary(m2)
 testInteractions(m2, custom = c(list(CT = c(1, -1)), list(ET = c(0, 1))), slope = "lnsla", adjustment="none") # T:E-P 0.827, U:E-P 0.01952, E:T-U 0.1435, P:T-U 0.004004
 testInteractions(m2, custom = c(list(CT = c(1, -1)), list(ET = c(0, 1))), adjustment="none") # T:E-P 0.01, U:E-P 3.548e-10, E:T-U 0.000239, P:T-U 1.919e-09
@@ -174,11 +187,12 @@ qqnorm(residuals(m2))
 plot(allEffects(m2))
 
 
-m3 <- glmer(pa ~ LUH + LUH:CT + CT*ET*lnht + (1|Site/LUH:CT/SP2) + (1+ CT*ET|Spp) + (1|obs), family = "binomial", control=glmerControl(calc.derivs=F), nAGQ = 0, data=ht.melt)
+m3 <- glmer(pa ~ LUH + LUH:CT + CT*ET*scale(log(MaxPhotosynthetic_cm)) + (1|Site/LUH:CT/SP2) + (1+ CT*ET|Spp) + (1|obs), family = "binomial", control=glmerControl(calc.derivs=F), nAGQ = 0, data=ht.melt)# %>% select(-lnht) %>% filter(Spp %in% as.list(ht.spplist %>% filter(Spp_n >= 5) %>% select(Spp))$Spp))
 testInteractions(m3, custom = c(list(CT = c(1, -1)), list(ET = c(0,1))), slope = "lnht", adjustment="none") # T:E-P 0.09361, U:E-P  0.2215, E:T-U 0.6927, P:T-U 0.06173
 testInteractions(m3, custom = c(list(CT = c(1, -1)), list(ET = c(0,1))), adjustment="none") # T:E-P 0.003427, U:E-P 8.203e-08, E:T-U 0.0003088, P:T-U 2.437e-07
-
+Anova(m3)
 summary(m3)
+sem.model.fits(m3)
 hist(resid(m3))
 qqnorm(residuals(m3))
 plot(allEffects(m3))
@@ -231,28 +245,28 @@ load("G:/My Drive/Graduate School/Research/Remnant/Root exclosure/Seedling diver
 
 library(vegan)
 betamatrixRTE <- data.cast[data.cast$LUH == "R" & data.cast$CT == "T" & data.cast$ET == "E" ,9:60]
-specRTE <- specaccum(betamatrixRTE, permutations = 10000)
+specRTE <- specaccum(betamatrixRTE, method = "coleman", permutations = 10000)
 
 betamatrixRTP <- data.cast[data.cast$LUH == "R" & data.cast$CT == "T" & data.cast$ET == "P" ,9:60]
-specRTP <- specaccum(betamatrixRTP)
+specRTP <- specaccum(betamatrixRTP, method = "coleman", permutations = 10000)
 
 betamatrixMTE <- data.cast[data.cast$LUH == "M" & data.cast$CT == "T" & data.cast$ET == "E" ,9:60]
-specMTE <- specaccum(betamatrixMTE)
+specMTE <- specaccum(betamatrixMTE, method = "coleman", permutations = 10000)
 
 betamatrixMTP <- data.cast[data.cast$LUH == "M" & data.cast$CT == "T" & data.cast$ET == "P" ,9:60]
-specMTP <- specaccum(betamatrixMTP)
+specMTP <- specaccum(betamatrixMTP, method = "coleman", permutations = 10000)
 
 betamatrixRUE <- data.cast[data.cast$LUH == "R" & data.cast$CT == "U" & data.cast$ET == "E" ,9:60]
-specRUE <- specaccum(betamatrixRUE)
+specRUE <- specaccum(betamatrixRUE, method = "coleman", permutations = 10000)
 
 betamatrixRUP <- data.cast[data.cast$LUH == "R" & data.cast$CT == "U" & data.cast$ET == "P" ,9:60]
-specRUP <- specaccum(betamatrixRUP)
+specRUP <- specaccum(betamatrixRUP, method = "coleman", permutations = 10000)
 
 betamatrixMUE <- data.cast[data.cast$LUH == "M" & data.cast$CT == "U" & data.cast$ET == "E" ,9:60]
-specMUE <- specaccum(betamatrixMUE)
+specMUE <- specaccum(betamatrixMUE, method = "coleman", permutations = 10000)
 
 betamatrixMUP <- data.cast[data.cast$LUH == "M" & data.cast$CT == "U" & data.cast$ET == "P" ,9:60]
-specMUP <- specaccum(betamatrixMUP)
+specMUP <- specaccum(betamatrixMUP, method = "coleman", permutations = 10000)
 
 plot(specRTE, ci = 0, col = "darkolivegreen3", lwd = 3, xlab = "Samples", ylab = "Number of species") #gold2, darkolivegreen
 plot(specRTP, add = TRUE, ci = 0, col = "darkolivegreen3", lty = "dashed", lwd = 3, xlab = "Samples", ylab = "Number of species")
@@ -263,6 +277,30 @@ plot(specRUP, add = TRUE, ci = 0, col = "darkolivegreen", lty = "dashed", lwd = 
 plot(specMUE, add = TRUE, ci = 0, col = "gold4", lwd = 3, xlab = "Samples", ylab = "Number of species")
 plot(specMUP, add = TRUE, ci = 0, col = "gold4", lty = "dashed", lwd = 3, xlab = "Samples", ylab = "Number of species")
 
+data.cast.nms <- data.cast 
+rownames(data.cast.nms) <- data.cast$ID
+data.cast.nms <- data.cast.nms %>%
+  select(ACAGRA:VITROT) %>%
+  mutate(FAKE <- 1)
+
+seedling_nms <- metaMDS(data.cast.nms, k = 2)
+
+data.scores <- as.data.frame(scores(seedling_nms))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
+ # create a column of site names, from the rownames of data.scores
+data.scores <- cbind(data.scores,  data.cast %>% select(Site, LUH, CT, SP, ET, EP))
+
+
+species.scores <- as.data.frame(scores(seedling_nms, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+species.scores$species <- rownames(species.scores)  # create a column of species, from the rownames of species.scores
+
+ggplot() + 
+  #geom_text(data=species.scores,aes(x=NMDS1,y=NMDS2,label=species),alpha=0.5) +  # add the species labels
+  geom_point(data=data.scores,aes(x=NMDS1,y=NMDS2,shape=interaction(CT,ET),colour=interaction(CT,ET)),size=3) + # add the point markers
+  geom_text(data=data.scores,aes(x=NMDS1,y=NMDS2,label=site),size=6,vjust=0) +  # add the site labels
+  scale_colour_manual(values=c("A" = "red", "B" = "blue")) +
+  coord_equal()
+
+  
 #Volunteer only
 
 

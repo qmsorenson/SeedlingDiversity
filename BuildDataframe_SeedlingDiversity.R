@@ -1,4 +1,4 @@
-setwd("G:/My Drive/Graduate School/Research/Remnant/Root exclosure/data") #Set working directory
+setwd("C:/Users/Quinn Sorenson/Documents/R/Git_R/Root_exclosures/data")
 
 library(reshape2)
 library(lme4)
@@ -12,7 +12,7 @@ library(lsmeans)
 library(effects)
 
 
-data <- read.csv("G:/My Drive/Graduate School/Research/Remnant/Root exclosure/data/Initial survival and height.csv")
+data <- read.csv("C:/Users/Quinn Sorenson/Documents/R/Git_R/Root_exclosures/data/Initial survival and height.csv")
 data$Sdling <- ifelse(data$SppCode == "NONE", 0, data$Sdling)
 data <- data %>% 
   rename("Site" = "S_ID", "Spp" = "SppCode", "brn" = "Burned.")
@@ -46,7 +46,7 @@ data.cast$logrich.a <- log(data.cast$rich.a + 1)
 data.cast$logrich.s <- log(data.cast$rich.s + 1)
 data.cast$logrich.v <- log(data.cast$rich.v + 1)
 
-save(data.cast, file = "G:/My Drive/Graduate School/Research/Remnant/Root exclosure/Seedling diversity/data/R_dataframes/data.cast.RData")
+#save(data.cast, file = "G:/My Drive/Graduate School/Research/Remnant/Root exclosure/Seedling diversity/data/R_dataframes/data.cast.RData")
 
 #### Environmental variables ####
 
@@ -122,7 +122,16 @@ gre$ID <- paste(gre$Site, gre$LUH, gre$CT, gre$SP, gre$ET, gre$EP)
 gre$ltb <- gre$leaf/(gre$leaf + gre$bare)
 ear.gre <- left_join(data.cast[data.cast$brn == "NO",], gre[,names(gre) %in% c("ID", "green", "ltb")], by = "ID")
 
-save(data.cast.whc, ear.light, data.castcomp, data.cast.dbh, ear.gre, file = "G:/My Drive/Graduate School/Research/Remnant/Root exclosure/Seedling diversity/data/R_dataframes/Enviro.data.RData")
+# combine together for cor table
+
+data.cast.all <- data.cast.whc %>%
+  select(Site, LUH, CT, ET, EP, SP, ID, whc) %>%
+  left_join(ear.light %>% select(X5cm, X15cm, X25cm, ID), by = "ID") %>%
+  left_join(data.cast.dbh %>% select(basal, ID), by = "ID") %>%
+  left_join(ear.gre %>% select(green, ID), by = "ID") %>%
+  left_join(data.castcomp %>% select(comp, ID2), by = c("ID" = "ID2"))
+
+#save(data.cast.whc, ear.light, data.castcomp, data.cast.dbh, ear.gre, data.cast.all, file = "G:/My Drive/Graduate School/Research/Remnant/Root exclosure/Seedling diversity/data/R_dataframes/Enviro.data.RData")
 
 
 #### MLM functional traits ####
